@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wastify | Food Rescue</title>
+
+    <style>
+        :root {
+            --g: #16794b;
+            --d: #104d34;
+            --m: #e8f6ee;
+            --ink: #17241d;
+            --muted: #64736a;
+            --line: #e0e8e1;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: #f6f8f5;
+            color: var(--ink);
+            font: 15px/1.5 system-ui, Segoe UI, sans-serif;
+        }
+
+        header {
+            background: linear-gradient(120deg, #104d34, #168252);
+            color: white;
+            padding: 24px max(20px, calc((100% - 1120px) / 2));
+        }
+
+        .brand { font-size: 26px; font-weight: 800; }
+        .brand span { color: #baf0ce; }
+        .tag { opacity: .9; }
+
+        main {
+            max-width: 1120px;
+            margin: 28px auto;
+            padding: 0 18px;
+        }
+
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .hero h1 {
+            font-size: clamp(25px, 4vw, 36px);
+            margin: 0 0 5px;
+        }
+
+        .hero p { color: var(--muted); margin: 0; }
+
+        .pill {
+            background: var(--m);
+            color: var(--d);
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 330px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 5px 22px #12331a08;
+        }
+
+        .card h2 { font-size: 19px; margin: 0 0 12px; }
+
+        label {
+            display: block;
+            font-weight: 650;
+            font-size: 13px;
+            margin: 12px 0 5px;
+        }
+
+        input, select {
+            width: 100%;
+            border: 1px solid #cbd8ce;
+            border-radius: 9px;
+            padding: 11px 12px;
+            font: inherit;
+            background: white;
+        }
+
+        button {
+            border: 0;
+            border-radius: 9px;
+            padding: 11px 15px;
+            background: var(--g);
+            color: white;
+            font: inherit;
+            font-weight: 750;
+            cursor: pointer;
+        }
+
+        button:hover { background: var(--d); }
+        button:disabled { opacity: .55; cursor: wait; }
+
+        .submit, .claim { width: 100%; margin-top: 15px; }
+        .secondary { background: #eaf5ed; color: var(--d); }
+
+        .notice {
+            display: none;
+            border-radius: 9px;
+            padding: 10px;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+
+        .notice.show { display: block; }
+        .ok { background: #e7f7ed; color: #145b35; }
+        .err { background: #fff0ed; color: #9c3021; }
+
+        .meta {
+            color: var(--muted);
+            font-size: 13px;
+            margin: 4px 0;
+            overflow-wrap: anywhere;
+        }
+
+        .head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .head h2 { margin: 0; }
+        .filters { display: flex; gap: 8px; }
+        .filters select { width: auto; padding: 8px; }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .donation {
+            border: 1px solid var(--line);
+            border-radius: 13px;
+            padding: 15px;
+            min-width: 0;
+        }
+
+        .donation h3 {
+            margin: 0 0 4px;
+            font-size: 17px;
+            overflow-wrap: anywhere;
+        }
+
+        .status {
+            display: inline-block;
+            margin: 9px 0;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #e8f6ee;
+            color: #17603b;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .claimed { background: #eee; color: #555; }
+
+        .empty {
+            padding: 30px 12px;
+            text-align: center;
+            color: var(--muted);
+            border: 1px dashed #cbd8ce;
+            border-radius: 12px;
+            grid-column: 1 / -1;
+        }
+
+        .foot {
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+            padding: 25px;
+        }
+
+        .auth-wrap { max-width: 430px; margin: 35px auto; }
+        .auth-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+        .auth-tabs button { flex: 1; }
+        .auth-tabs .active { background: var(--d); }
+
+        .auth-switch {
+            color: var(--g);
+            font-weight: 700;
+            cursor: pointer;
+            border: 0;
+            background: none;
+            padding: 0;
+        }
+
+        .auth-switch:hover {
+            background: none;
+            text-decoration: underline;
+        }
+
+        .google-login {
+            width: 100%;
+            margin-top: 12px;
+            background: #fff;
+            color: #202124;
+            border: 1px solid #dadce0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            font-weight: 650;
+        }
+
+        .google-login:hover { background: #f8faff; }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 16px 0 4px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: "";
+            height: 1px;
+            background: var(--line);
+            flex: 1;
+        }
+
+        #app { display: none; }
+
+        @media (max-width: 800px) {
+            .layout { grid-template-columns: 1fr; }
+            .cards { grid-template-columns: 1fr; }
+            .hero, .head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="brand">🌱 Wasti<span>fy</span></div>
+    <div class="tag">Rescue food. Feed communities. Reduce waste.</div>
+</header>
+
+<!-- LOGIN AND SIGNUP -->
+<main id="auth">
+    <div class="auth-wrap">
+        <section class="card">
+            <h2 id="authTitle">Welcome back</h2>
+            <p class="meta" id="authSubtitle">Log in to continue to Wastify.</p>
+
+            <div class="auth-tabs">
+                <button type="button" id="loginTab" class="active">Login</button>
+                <button type="button" id="signupTab" class="secondary">Sign Up</button>
+            </div>
+
+            <div id="authNotice" class="notice" role="alert"></div>
+
+            <form id="authForm">
+                <div id="nameGroup" style="display:none">
+                    <label for="authName">Full name *</label>
+                    <input id="authName" maxlength="100" autocomplete="name">
+                </div>
+
+                <label for="authEmail">Email *</label>
+                <input
+                        id="authEmail"
+                        type="email"
+                        maxlength="254"
+                        autocomplete="email"
+                        required
+                        placeholder="you@example.com"
+                >
+
+                <label for="authPassword">Password *</label>
+                <input
+                        id="authPassword"
+                        type="password"
+                        minlength="8"
+                        autocomplete="current-password"
+                        required
+                        placeholder="Enter password"
+                >
+
+                <button id="authSubmit" class="submit" type="submit">Login</button>
+            </form>
+
+            <div class="auth-divider">or</div>
+
+            <button type="button" id="googleLogin" class="google-login">
+                <span aria-hidden="true">G</span>
+                Continue with Google
+            </button>
+
+            <p class="meta" style="margin-top:18px;text-align:center">
+                <span id="switchText">New to Wastify?</span>
+                <button type="button" class="auth-switch" id="switchButton">
+                    Create account
+                </button>
+            </p>
+        </section>
+    </div>
+</main>
+
+<!-- DONATION DASHBOARD -->
+<main id="app">
+    <section class="hero">
+        <div>
+            <h1>Every meal deserves a second chance.</h1>
+            <p>Share surplus food with people and organizations who need it.</p>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <div class="pill" id="count">Loading…</div>
+            <button id="logout" class="secondary" type="button">Log out</button>
+        </div>
+    </section>
+
+    <div class="meta" id="welcome"></div>
+
+    <div class="layout">
+        <section class="card">
+            <h2>Share surplus food</h2>
+            <p class="meta">Add details to make a donation available.</p>
+            <div id="notice" class="notice"></div>
+
+            <form id="form">
+                <label for="food">Food name *</label>
+                <input id="food" maxlength="100" required placeholder="Vegetable rice">
+
+                <label for="donor">Restaurant / donor *</label>
+                <input id="donor" maxlength="100" required placeholder="Green Kitchen">
+
+                <label for="loc">Pickup location</label>
+                <input id="loc" maxlength="160" placeholder="Tirupati, Andhra Pradesh">
+
+                <label for="qty">Quantity</label>
+                <input id="qty" maxlength="80" placeholder="10 meal boxes">
+
+                <label for="expiry">Best before / pickup by</label>
+                <input id="expiry" type="datetime-local">
+
+                <button id="submit" class="submit" type="submit">
+                    ＋ Publish donation
+                </button>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="head">
+                <h2>Food donations</h2>
+                <div class="filters">
+                    <select id="filter">
+                        <option value="ALL">All donations</option>
+                        <option value="AVAILABLE">Available</option>
+                        <option value="CLAIMED">Claimed</option>
+                    </select>
+                    <button id="refresh" class="secondary" type="button">↻ Refresh</button>
+                </div>
+            </div>
+
+            <div id="list" class="cards">
+                <div class="empty">Loading donations…</div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div class="foot">
+    Wastify · AWS learning project · Verify food safety and pickup details directly.
+</div>
+
+<script>
+    const $ = id => document.getElementById(id);
+    const authForm = $('authForm');
+    const donationForm = $('form');
+
+    let authMode = 'login';
+    let data = [];
+    let currentUser = null;
+
+    // Cognito configuration for local development.
+    // This SPA client has no client secret.
+    const COGNITO_DOMAIN =
+        'https://ap-southeast-2cseyjsdvo.auth.ap-southeast-2.amazoncognito.com';
+
+    const COGNITO_CLIENT_ID = 'ir7ld881gm9ph1hjq0lhmfrma';
+
+    const COGNITO_REDIRECT_URI = 'http://localhost:8080/';
+    const COGNITO_LOGOUT_URI = 'http://localhost:8080/';
+
+    function base64Url(bytes) {
+        let binary = '';
+
+        bytes.forEach(b => {
+            binary += String.fromCharCode(b);
+        });
+
+        return btoa(binary)
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/g, '');
+    }
+
+    async function sha256Base64Url(value) {
+        const digest = await crypto.subtle.digest(
+            'SHA-256',
+            new TextEncoder().encode(value)
+        );
+
+        return base64Url(new Uint8Array(digest));
+    }
+
+    function decodeJwtPayload(token) {
+        try {
+            const payload = token.split('.')[1]
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+
+            return JSON.parse(atob(payload));
+        } catch (_) {
+            return {};
+        }
+    }
+
+    // Start Google sign-in through Cognito using PKCE.
+    async function startGoogleLogin() {
+        const random = new Uint8Array(32);
+        crypto.getRandomValues(random);
+
+        const verifier = base64Url(random);
+
+        const stateBytes = new Uint8Array(24);
+        crypto.getRandomValues(stateBytes);
+
+        const state = base64Url(stateBytes);
+        const challenge = await sha256Base64Url(verifier);
+
+        sessionStorage.setItem('wastify_pkce_verifier', verifier);
+        sessionStorage.setItem('wastify_oauth_state', state);
+
+        const params = new URLSearchParams({
+            client_id: COGNITO_CLIENT_ID,
+            response_type: 'code',
+            scope: 'openid email',
+            redirect_uri: COGNITO_REDIRECT_URI,
+            identity_provider: 'Google',
+            code_challenge_method: 'S256',
+            code_challenge: challenge,
+            state: state
+        });
+
+        window.location.assign(
+            COGNITO_DOMAIN + '/oauth2/authorize?' + params.toString()
+        );
+    }
+
+    // Handle the callback after Cognito redirects back to Wastify.
+    async function finishCognitoLoginIfPresent() {
+        const query = new URLSearchParams(window.location.search);
+        const code = query.get('code');
+        const oauthError = query.get('error');
+
+        if (oauthError) {
+            history.replaceState({}, document.title, window.location.pathname);
+
+            showNotice(
+                'authNotice',
+                query.get('error_description') || oauthError,
+                'err'
+            );
+
+            return;
+        }
+
+        if (!code) return;
+
+        const expectedState = sessionStorage.getItem('wastify_oauth_state');
+        const returnedState = query.get('state');
+        const verifier = sessionStorage.getItem('wastify_pkce_verifier');
+
+        history.replaceState({}, document.title, window.location.pathname);
+
+        if (!expectedState || expectedState !== returnedState || !verifier) {
+            showNotice(
+                'authNotice',
+                'Google sign-in could not be verified. Please try again.',
+                'err'
+            );
+
+            return;
+        }
+
+        try {
+            const body = new URLSearchParams({
+                grant_type: 'authorization_code',
+                client_id: COGNITO_CLIENT_ID,
+                code: code,
+                redirect_uri: COGNITO_REDIRECT_URI,
+                code_verifier: verifier
+            });
+
+            const response = await fetch(COGNITO_DOMAIN + '/oauth2/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: body
+            });
+
+            const tokens = await response.json();
+
+            if (!response.ok || !tokens.id_token) {
+                throw new Error(
+                    tokens.error_description ||
+                    tokens.error ||
+                    'Cognito sign-in failed.'
+                );
+            }
+
+            sessionStorage.removeItem('wastify_pkce_verifier');
+            sessionStorage.removeItem('wastify_oauth_state');
+
+            sessionStorage.setItem('wastify_id_token', tokens.id_token);
+
+            if (tokens.access_token) {
+                sessionStorage.setItem(
+                    'wastify_access_token',
+                    tokens.access_token
+                );
+            }
+
+            const profile = decodeJwtPayload(tokens.id_token);
+
+            currentUser = {
+                email: profile.email || 'Google user',
+                name: profile.name || ''
+            };
+
+            $('auth').style.display = 'none';
+            $('app').style.display = 'block';
+
+            $('welcome').textContent =
+                'Logged in as ' + currentUser.email + ' (Google)';
+
+            clearNotice('authNotice');
+
+            await loadDonations();
+
+        } catch (err) {
+            sessionStorage.removeItem('wastify_pkce_verifier');
+            sessionStorage.removeItem('wastify_oauth_state');
+
+            showNotice(
+                'authNotice',
+                err.message || 'Google sign-in failed.',
+                'err'
+            );
+        }
+    }
+
+    function showNotice(id, text, type = 'ok') {
+        const el = $(id);
+        el.textContent = text;
+        el.className = 'notice show ' + type;
+    }
+
+    function clearNotice(id) {
+        $(id).className = 'notice';
+    }
+
+    function esc(v) {
+        return String(v ?? '').replace(/[&<>"']/g, c => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[c]));
+    }
+
+    function date(v) {
+        if (!v) return 'Not provided';
+
+        const d = new Date(v);
+        return isNaN(d) ? v : d.toLocaleString();
+    }
+
+    // Existing Spring Boot API helper.
+    async function api(url, opts = {}) {
+        const r = await fetch(url, {
+            ...opts,
+            headers: {
+                'Content-Type': 'application/json',
+                ...(opts.headers || {})
+            }
+        });
+
+        const d = await r.json().catch(() => ({}));
+
+        if (!r.ok) {
+            throw Error(
+                d.message || d.error || `Request failed (${r.status})`
+            );
+        }
+
+        return d;
+    }
+
+    function setAuthMode(mode) {
+        authMode = mode;
+
+        const signup = mode === 'signup';
+
+        $('authTitle').textContent = signup
+            ? 'Create your account'
+            : 'Welcome back';
+
+        $('authSubtitle').textContent = signup
+            ? 'Sign up to start using Wastify.'
+            : 'Log in to continue to Wastify.';
+
+        $('nameGroup').style.display = signup ? 'block' : 'none';
+        $('authName').required = signup;
+
+        $('authPassword').autocomplete = signup
+            ? 'new-password'
+            : 'current-password';
+
+        $('authSubmit').textContent = signup
+            ? 'Create account'
+            : 'Login';
+
+        $('loginTab').className = signup ? 'secondary' : 'active';
+        $('signupTab').className = signup ? 'active' : 'secondary';
+
+        $('switchText').textContent = signup
+            ? 'Already have an account?'
+            : 'New to Wastify?';
+
+        $('switchButton').textContent = signup
+            ? 'Log in'
+            : 'Create account';
+
+        clearNotice('authNotice');
+    }
+
+    $('loginTab').onclick = () => setAuthMode('login');
+    $('signupTab').onclick = () => setAuthMode('signup');
+
+    $('switchButton').onclick = () => {
+        setAuthMode(authMode === 'login' ? 'signup' : 'login');
+    };
+
+    $('googleLogin').onclick = () => {
+        $('googleLogin').disabled = true;
+
+        startGoogleLogin().catch(err => {
+            showNotice(
+                'authNotice',
+                err.message || 'Could not start Google sign-in.',
+                'err'
+            );
+
+            $('googleLogin').disabled = false;
+        });
+    };
+
+    // Existing email/password signup and login.
+    authForm.onsubmit = async e => {
+        e.preventDefault();
+
+        const btn = $('authSubmit');
+        btn.disabled = true;
+
+        clearNotice('authNotice');
+
+        try {
+            const body = {
+                email: $('authEmail').value.trim(),
+                password: $('authPassword').value
+            };
+
+            let result;
+
+            if (authMode === 'signup') {
+                body.name = $('authName').value.trim();
+
+                result = await api('/api/auth/signup', {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+
+                showNotice(
+                    'authNotice',
+                    result.message || 'Account created. You can now log in.'
+                );
+
+                setAuthMode('login');
+
+                $('authEmail').value = body.email;
+                $('authPassword').value = '';
+                $('authPassword').focus();
+
+            } else {
+                result = await api('/api/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+
+                currentUser = { email: body.email };
+
+                $('auth').style.display = 'none';
+                $('app').style.display = 'block';
+
+                $('welcome').textContent = 'Logged in as ' + body.email;
+
+                clearNotice('authNotice');
+
+                await loadDonations();
+            }
+
+        } catch (err) {
+            showNotice(
+                'authNotice',
+                err.message || 'Something went wrong.',
+                'err'
+            );
+
+        } finally {
+            btn.disabled = false;
+        }
+    };
+
+    // Log out from Cognito.
+    $('logout').onclick = () => {
+        currentUser = null;
+
+        sessionStorage.removeItem('wastify_id_token');
+        sessionStorage.removeItem('wastify_access_token');
+        sessionStorage.removeItem('wastify_pkce_verifier');
+        sessionStorage.removeItem('wastify_oauth_state');
+
+        const params = new URLSearchParams({
+            client_id: COGNITO_CLIENT_ID,
+            logout_uri: COGNITO_LOGOUT_URI
+        });
+
+        window.location.assign(
+            COGNITO_DOMAIN + '/logout?' + params.toString()
+        );
+    };
+
+    function showDonationNotice(text, type = 'ok') {
+        showNotice('notice', text, type);
+    }
+
+    async function loadDonations() {
+        $('list').innerHTML = '<div class="empty">Loading…</div>';
+
+        try {
+            data = await api('/api/donations');
+            renderDonations();
+
+        } catch (e) {
+            $('list').innerHTML =
+                '<div class="empty">Could not load donations. Check AWS table and IAM settings, then refresh.</div>';
+
+            showDonationNotice(e.message, 'err');
+        }
+    }
+
+    function renderDonations() {
+        const f = $('filter').value;
+
+        const shown = data.filter(
+            x => f === 'ALL' || x.status === f
+        );
+
+        $('count').textContent =
+            data.filter(x => x.status === 'AVAILABLE').length +
+            ' available';
+
+        if (!shown.length) {
+            $('list').innerHTML =
+                '<div class="empty">No donations found. Add the first one!</div>';
+
+            return;
+        }
+
+        $('list').innerHTML = shown.map(x => `
+            <article class="donation">
+                <h3>${esc(x.foodName)}</h3>
+                <div class="meta">🏪 ${esc(x.restaurantName)}</div>
+                <div class="meta">📍 ${esc(x.location || 'Location not provided')}</div>
+                <div class="meta">🍱 ${esc(x.quantity || 'Quantity not provided')}</div>
+                <div class="meta">⏰ ${esc(date(x.expiryDate))}</div>
+                <span class="status ${x.status === 'CLAIMED' ? 'claimed' : ''}">
+                    ${esc(x.status)}
+                </span>
+                ${x.status === 'AVAILABLE'
+                    ? `<button class="claim" data-id="${esc(x.donationId)}">Claim donation</button>`
+                    : ''}
+            </article>
+        `).join('');
+
+        document.querySelectorAll('[data-id]').forEach(b => {
+            b.onclick = async () => {
+                b.disabled = true;
+
+                try {
+                    await api(
+                        '/api/donations/' +
+                        encodeURIComponent(b.dataset.id) +
+                        '/claim',
+                        { method: 'PATCH' }
+                    );
+
+                    showDonationNotice('Donation claimed!');
+                    await loadDonations();
+
+                } catch (e) {
+                    showDonationNotice(e.message, 'err');
+                    b.disabled = false;
+                }
+            };
+        });
+    }
+
+    donationForm.onsubmit = async e => {
+        e.preventDefault();
+
+        $('submit').disabled = true;
+
+        try {
+            const ex = $('expiry').value;
+
+            await api('/api/donations', {
+                method: 'POST',
+                body: JSON.stringify({
+                    foodName: $('food').value.trim(),
+                    restaurantName: $('donor').value.trim(),
+                    location: $('loc').value.trim(),
+                    quantity: $('qty').value.trim(),
+                    expiryDate: ex ? new Date(ex).toISOString() : ''
+                })
+            });
+
+            donationForm.reset();
+
+            showDonationNotice('Donation published successfully!');
+            await loadDonations();
+
+        } catch (err) {
+            showDonationNotice(err.message, 'err');
+
+        } finally {
+            $('submit').disabled = false;
+        }
+    };
+
+    $('refresh').onclick = loadDonations;
+    $('filter').onchange = renderDonations;
+
+    finishCognitoLoginIfPresent();
+</script>
+</body>
+</html>
